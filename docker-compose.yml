@@ -1,0 +1,12 @@
+version: "3.9"
+    
+services:
+  mongo:
+    image: mongo
+    container_name: db_mongo
+    ports:
+      - 28017:27017
+    environment:
+      - MONGO_INITDB_DATABASE=user-auth
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
