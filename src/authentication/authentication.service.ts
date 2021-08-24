@@ -35,24 +35,26 @@ export class AuthenticationService {
     }
   }
   public getAccessToken(userId: any): string {
-    try {
-      return this.jwtService.sign(userId, {
+    return this.jwtService.sign(
+      { userId },
+      {
         secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
         expiresIn: `${this.configService.get(
           'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
         )}s`,
-      });
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
-    }
+      },
+    );
   }
   public getRefreshToken(userId: any): string {
-    return this.jwtService.sign(userId, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-      expiresIn: `${this.configService.get(
-        'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
-      )}s`,
-    });
+    return this.jwtService.sign(
+      { userId },
+      {
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+        expiresIn: `${this.configService.get(
+          'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
+        )}s`,
+      },
+    );
   }
   private async verifyPassword(
     plainTextPassword: string,
