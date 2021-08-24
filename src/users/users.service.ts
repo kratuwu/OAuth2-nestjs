@@ -65,7 +65,7 @@ export class UsersService {
   async getProfileById(id: any) {
     const profile = await this.getById(id);
     if (profile) {
-      return profile;
+      return plainToClass(UserDto, profile);
     }
     throw new HttpException(
       'User with this email does not exist',
