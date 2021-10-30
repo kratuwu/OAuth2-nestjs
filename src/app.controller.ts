@@ -43,7 +43,7 @@ export class AppController {
     return { refreshToken, accessToken };
   }
 
-  @Get('context')
+  @Get('profile')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthenticationGuard)
   async getProfile(@Req() req: RequestWithUser) {
