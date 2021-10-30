@@ -3,7 +3,7 @@ version: "3.9"
 services:
   mongo:
     image: mongo
-    container_name: db_mongo
+    container_name: oauth2_nestjs
     ports:
       - 28017:27017
     environment:
