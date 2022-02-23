@@ -16,9 +16,11 @@ export class UsersService {
   constructor(
     @InjectModel(User.name) private usersModel: Model<UserDocument>,
   ) {}
+
   async create(email: string, password: string) {
     try {
-      const newUser: User = { email, password };
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const newUser: User = { email, password: hashedPassword };
       return plainToClass(UserDto, await this.usersModel.create(newUser));
     } catch (error) {
       switch (error.code) {
@@ -52,8 +54,8 @@ export class UsersService {
       currentHashedRefreshToken,
     });
   }
-  async getUserIfRefreshTokenMatches(refreshToken: string, userId: string) {
-    const user = await this.getById(userId);
+  async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
+    const user = await this.getById(id);
     const isRefreshTokenMatching = await bcrypt.compare(
       refreshToken,
       user.currentHashedRefreshToken,
@@ -62,17 +64,17 @@ export class UsersService {
       return plainToClass(UserDto, user);
     }
   }
-  async getProfileById(id: any) {
-    const profile = await this.getById(id);
-    if (profile) {
-      return profile;
+  async getProfileById(id: string): Promise<UserDto> {
+    return plainToClass(UserDto, await this.getById(id));
+  }
+  async getById(id: string) {
+    const user = await this.usersModel.findById(id);
+    if (user) {
+      return user;
     }
     throw new HttpException(
-      'User with this email does not exist',
+      'User with this id does not exist',
       HttpStatus.NOT_FOUND,
     );
-  }
-  private async getById(id: string) {
-    return await this.usersModel.findById(id);
   }
 }

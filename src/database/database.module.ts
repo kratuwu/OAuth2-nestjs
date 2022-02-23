@@ -12,6 +12,7 @@ import { MongooseModule } from '@nestjs/mongoose';
           uri: `mongodb://${configService.get(
             'MONGO_HOST',
           )}:${configService.get('MONGO_PORT')}`,
+          dbName: 'user-auth',
           user: configService.get('MONGO_USER'),
           pass: configService.get('MONGO_PASS'),
           useFindAndModify: false,
