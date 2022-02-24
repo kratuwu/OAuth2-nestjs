@@ -34,6 +34,7 @@ export class UsersService {
       }
     }
   }
+
   async getByEmail(email: string): Promise<User> {
     const user = await this.usersModel.findOne({ email });
     if (user) {
@@ -54,6 +55,7 @@ export class UsersService {
       currentHashedRefreshToken,
     });
   }
+
   async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
     const user = await this.getById(id);
     const isRefreshTokenMatching = await bcrypt.compare(
@@ -64,9 +66,11 @@ export class UsersService {
       return plainToClass(UserDto, user);
     }
   }
+
   async getProfileById(id: string): Promise<UserDto> {
     return plainToClass(UserDto, await this.getById(id));
   }
+
   async getById(id: string) {
     const user = await this.usersModel.findById(id);
     if (user) {
@@ -76,5 +80,11 @@ export class UsersService {
       'User with this id does not exist',
       HttpStatus.NOT_FOUND,
     );
+  }
+
+  async removeRefreshToken(userId: string) {
+    return this.usersModel.findByIdAndUpdate(userId, {
+      currentHashedRefreshToken: null,
+    });
   }
 }

@@ -10,6 +10,7 @@ import {
 import RequestWithUser from 'src/requestWithUser.interface';
 import { UsersService } from 'src/users/users.service';
 import JwtRefreshGuard, {
+  JwtAuthenticationGuard,
   LocalAuthenticationGuard,
 } from './authentication.guard';
 import { AuthenticationService } from './authentication.service';
@@ -31,6 +32,17 @@ export class AuthenticationController {
     await this.usersService.setCurrentRefreshToken(refreshToken, user.id);
 
     return { refreshToken, accessToken };
+  }
+
+  @UseGuards(JwtAuthenticationGuard)
+  @Post('/logout')
+  @HttpCode(200)
+  async logOut(@Req() request: RequestWithUser) {
+    await this.usersService.removeRefreshToken(request.user.id);
+    request.res.setHeader(
+      'Set-Cookie',
+      this.authenticationService.getCookiesForLogOut(),
+    );
   }
 
   @Get('/refresh')

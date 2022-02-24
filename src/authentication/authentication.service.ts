@@ -1,14 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
-import { Model } from 'mongoose';
 import UserDto from 'src/users/dto/user.dto';
-import { User, UserDocument } from 'src/users/user.schema';
 import { UsersService } from 'src/users/users.service';
-import RegisterDto from './dto/register.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -33,6 +29,7 @@ export class AuthenticationService {
       );
     }
   }
+
   public getAccessToken(userId: any): string {
     return this.jwtService.sign(
       { userId },
@@ -44,6 +41,7 @@ export class AuthenticationService {
       },
     );
   }
+
   public getRefreshToken(userId: any): string {
     return this.jwtService.sign(
       { userId },
@@ -55,6 +53,14 @@ export class AuthenticationService {
       },
     );
   }
+
+  public getCookiesForLogOut() {
+    return [
+      'Authentication=; HttpOnly; Path=/; Max-Age=0',
+      'Refresh=; HttpOnly; Path=/; Max-Age=0',
+    ];
+  }
+
   private async verifyPassword(
     plainTextPassword: string,
     hashedPassword: string,
