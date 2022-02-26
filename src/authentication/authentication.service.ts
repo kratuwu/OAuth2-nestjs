@@ -37,7 +37,13 @@ export class AuthenticationService {
     }
     return user;
   }
-
+  public async verifyAccessToken(userId: string): Promise<UserDTO> {
+    const user = await this.usersService.getUserById(userId);
+    if (!user.resetPasswordToken) {
+      return;
+    }
+    return user;
+  }
   public async resetPassword(resetPasswordToken: string, password: string) {
     const user: UserDTO = await this.usersService.getUserByResetPasswordToken(
       resetPasswordToken,
@@ -60,27 +66,25 @@ export class AuthenticationService {
   }
 
   public getAccessToken(userId: any): string {
-    return this.getJWT(
-      userId,
-      this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-      this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
+    return this.jwtService.sign(
+      { userId },
+      {
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+        expiresIn: `${this.configService.get(
+          'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
+        )}s`,
+      },
     );
   }
 
   public getRefreshToken(userId: any): string {
-    return this.getJWT(
-      userId,
-      this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-      this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME'),
-    );
-  }
-
-  private getJWT(secret: string, userId: string, expireTime: number) {
     return this.jwtService.sign(
       { userId },
       {
-        secret: secret,
-        expiresIn: `${expireTime}s`,
+        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: `${this.configService.get(
+          'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
+        )}s`,
       },
     );
   }
