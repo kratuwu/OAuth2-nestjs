@@ -8,4 +8,4 @@ export class LocalAuthenticationGuard extends AuthGuard('local') {}
 export class JwtAuthenticationGuard extends AuthGuard('jwt') {}
 
 @Injectable()
-export default class JwtRefreshGuard extends AuthGuard('jwt-refresh-token') {}
+export class JwtRefreshGuard extends AuthGuard('jwt-refresh-token') {}

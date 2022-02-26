@@ -2,7 +2,7 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 import { IsEmail } from 'class-validator';
 
 @Exclude()
-export class UserDto {
+export class UserDTO {
   @Transform(({ value, obj }) => {
     if (obj._id && typeof obj._id.toString === 'function') {
       return obj._id.toString();
@@ -16,6 +16,15 @@ export class UserDto {
   @IsEmail()
   @Expose()
   email: string;
+
+  @Expose()
+  password: string;
+
+  @Expose()
+  resetPasswordToken?: string;
+
+  @Expose()
+  resetPasswordExp?: number;
 }
 
-export default UserDto;
+export default UserDTO;
