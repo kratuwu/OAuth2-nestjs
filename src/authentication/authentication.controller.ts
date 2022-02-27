@@ -36,9 +36,8 @@ export class AuthenticationController {
 
   @UseGuards(JwtAuthenticationGuard)
   @Post('/logout')
-  @HttpCode(200)
-  async logOut(@GetUser() user: UserDTO) {
-    this.usersService.removeRefreshToken(user.id);
+  logOut(@GetUser() user: UserDTO) {
+    return this.usersService.removeRefreshToken(user.id);
   }
 
   @Get('/refresh')
@@ -53,10 +52,13 @@ export class AuthenticationController {
   }
 
   @Get('/reset')
-  async resetPassword(
+  resetPassword(
     @Headers('ResetToken') resetToken: string,
     @Body() request: ResetPasswordDTO,
   ) {
-    this.authenticationService.resetPassword(resetToken, request.password);
+    return this.authenticationService.resetPassword(
+      resetToken,
+      request.password,
+    );
   }
 }

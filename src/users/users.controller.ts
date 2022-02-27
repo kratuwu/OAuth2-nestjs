@@ -9,13 +9,13 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('/register')
-  async register(@Body() registrationData: RegisterDTO) {
-    await this.usersService.create(registrationData);
+  register(@Body() registrationData: RegisterDTO) {
+    return this.usersService.create(registrationData);
   }
 
   @Get('/profile')
   @UseGuards(JwtAuthenticationGuard)
-  async getProfile(@Req() req: RequestWithUser) {
-    return await this.usersService.getProfileById(req.user.id);
+  getProfile(@Req() req: RequestWithUser) {
+    return this.usersService.getProfileById(req.user.id);
   }
 }
