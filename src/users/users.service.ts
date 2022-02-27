@@ -12,18 +12,22 @@ import ProfileDTO from './dto/profile.dto';
 import { plainToClass } from 'class-transformer';
 import { ConfigService } from '@nestjs/config';
 import UserDTO from './dto/user.dto';
+import { UsersRepository } from './users.repository';
+import RegisterDTO from './dto/register.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) private readonly usersModel: Model<UserDocument>,
     private readonly configService: ConfigService,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
-  async create(email: string, password: string) {
+  async create(register: RegisterDTO): Promise<ProfileDTO> {
     try {
-      const newUser: User = { email, password };
-      return plainToClass(ProfileDTO, await this.usersModel.create(newUser));
+      return plainToClass(
+        ProfileDTO,
+        await this.usersRepository.create(register),
+      );
     } catch (error) {
       switch (error.code) {
         case 11000:
@@ -36,13 +40,10 @@ export class UsersService {
       }
     }
   }
-  async updatePassword(userId: string, password: string) {
+
+  async updatePassword(userId: string, password: string): Promise<void> {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await this.usersModel.findByIdAndUpdate(userId, {
-      password: hashedPassword,
-      resetPasswordExp: null,
-      resetPasswordToken: null,
-    });
+    await this.usersRepository.updateUserPasswordById(userId, hashedPassword);
   }
 
   async setCurrentRefreshToken(
@@ -50,13 +51,17 @@ export class UsersService {
     userId: string,
   ): Promise<void> {
     const currentHashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.usersModel.findByIdAndUpdate(userId, {
+    await this.usersRepository.updateRefreshTokenById(
+      userId,
       currentHashedRefreshToken,
-    });
+    );
   }
 
-  async getUserIfRefreshTokenMatches(refreshToken: string, id: string) {
-    const user = await this.getById(id);
+  async getUserIfRefreshTokenMatches(
+    refreshToken: string,
+    id: string,
+  ): Promise<ProfileDTO> {
+    const user = await this.usersRepository.getById(id);
     const isRefreshTokenMatching = await bcrypt.compare(
       refreshToken,
       user.currentHashedRefreshToken,
@@ -67,11 +72,11 @@ export class UsersService {
   }
 
   async getProfileById(id: string): Promise<ProfileDTO> {
-    return plainToClass(ProfileDTO, await this.getById(id));
+    return plainToClass(ProfileDTO, await this.usersRepository.getById(id));
   }
 
   async getResetPasswordLink(email: string): Promise<string> {
-    const user = await this.getByEmail(email);
+    const user = await this.usersRepository.getByEmail(email);
     user.generatePasswordReset();
     await user.save();
     return `${this.configService.get(
@@ -80,52 +85,21 @@ export class UsersService {
   }
 
   async removeRefreshToken(userId: string): Promise<void> {
-    await this.usersModel.findByIdAndUpdate(userId, {
-      currentHashedRefreshToken: null,
-    });
+    await this.usersRepository.updateRefreshTokenById(userId, null);
   }
 
   async getUserById(id: string): Promise<UserDTO> {
-    return plainToClass(UserDTO, await this.getById(id));
+    return plainToClass(UserDTO, await this.usersRepository.getById(id));
   }
 
   async getUserByEmail(email: string): Promise<UserDTO> {
-    return plainToClass(UserDTO, await this.getByEmail(email));
+    return plainToClass(UserDTO, await this.usersRepository.getByEmail(email));
   }
 
-  async getUserByResetPasswordToken(resetToken: string) {
+  async getUserByResetPasswordToken(resetToken: string): Promise<UserDTO> {
     return plainToClass(
       UserDTO,
-      await this.getByResetPasswordToken(resetToken),
+      await this.usersRepository.getByResetPasswordToken(resetToken),
     );
-  }
-
-  private async getByResetPasswordToken(resetPasswordToken: string) {
-    const user = await this.usersModel.findOne({ resetPasswordToken });
-    if (user) {
-      return user;
-    }
-    throw new HttpException('Invalid Token', HttpStatus.NOT_FOUND);
-  }
-  private async getByEmail(email: string): Promise<UserDocument> {
-    const user = await this.usersModel.findOne({ email });
-    if (user) {
-      return user;
-    }
-    throw new HttpException(
-      'User with this email does not exist',
-      HttpStatus.NOT_FOUND,
-    );
-  }
-
-  private async getById(id: string): Promise<UserDocument> {
-    const user = await this.usersModel.findById(id);
-    if (!user) {
-      throw new HttpException(
-        'User with this id does not exist',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    return user;
   }
 }
